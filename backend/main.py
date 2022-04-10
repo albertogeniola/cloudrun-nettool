@@ -1,7 +1,4 @@
-"""
-Application entrypoint
-"""
+from net_tool_backend.web import app
 
-if __name__ == '__main__':
-    # TODO
-    pass
+if __name__ == "__main__":
+    app.run()

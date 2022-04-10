@@ -2,8 +2,8 @@ from typing import List
 
 from flask_restful import reqparse, abort, Api, Resource
 
-from api.v1.reponse import make_success_response
-from executor import CommandExecutor
+from net_tool_backend.api.v1.reponse import make_success_response
+from net_tool_backend.executor import CommandExecutor
 
 
 parser = reqparse.RequestParser()

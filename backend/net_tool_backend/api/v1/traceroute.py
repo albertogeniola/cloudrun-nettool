@@ -1,7 +1,7 @@
 from flask_restful import Resource
 
-from api.v1.reponse import make_success_response
-from network_tools.traceroute import Tracer
+from net_tool_backend.api.v1.reponse import make_success_response
+from net_tool_backend.network_tools.traceroute import Tracer
 
 
 class Traceroute(Resource):

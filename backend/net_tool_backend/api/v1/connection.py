@@ -1,9 +1,8 @@
 from flask_restful import Resource, reqparse
 
 
-from api.v1.reponse import make_success_response
-from network_tools.tcp_connection import SocketConnector
-
+from net_tool_backend.api.v1.reponse import make_success_response
+from net_tool_backend.network_tools.tcp_connection import SocketConnector
 
 
 class TestTcpConnection(Resource):
