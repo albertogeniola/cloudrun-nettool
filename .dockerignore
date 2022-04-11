@@ -1,0 +1,12 @@
+# IDEs
+*/.idea
+*/.vscode
+
+# Python venv
+*/.venv
+*/venv
+
+# Angular and node modules
+*/.gitignore
+*/node_modules
+*/dist
