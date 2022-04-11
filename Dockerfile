@@ -19,5 +19,7 @@ COPY backend/ ./
 RUN pip3 install -r ./requirements.txt
 COPY entrypoint.sh ./
 
-EXPOSE 8080
+ENV PORT=8080
+
+RUN chmod +x ./entrypoint.sh
 ENTRYPOINT [ "./entrypoint.sh" ]
