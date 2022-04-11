@@ -1,11 +1,23 @@
-FROM openjdk:17-alpine
+# Stage 1: Build the frontend
+FROM node:12 AS build
+WORKDIR /usr/src/app
+COPY frontend/ ./
+RUN npm install
+RUN npm run build --prod
 
-COPY *.cer ./
-RUN keytool -v -importcert -alias "Carrefour Root CA" -file c4-root-ca.cer -noprompt -cacerts -storepass changeit
-	&& rm *.cer 
+# Stage 2: Install the python files and the frontend static content
+FROM python:3.10-slim
 
-# Add the compiled app
-ADD target/*.jar app.jar
+WORKDIR /opt/net-tool
 
-# Setup the entrypoint
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app.jar"]
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+COPY --from=build /usr/src/app/dist/app ./static
+COPY backend/ ./
+RUN pip3 install -r ./requirements.txt
+COPY entrypoint.sh ./
+
+EXPOSE 8080
+ENTRYPOINT [ "./entrypoint.sh" ]
