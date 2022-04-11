@@ -15,13 +15,9 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 COPY --from=build /usr/src/app/dist/app ./static
-
-# Note: this will also copy the frontend folder, which we don't need.
-COPY ./ ./
-RUN rm frontend
+COPY backend/ ./
 RUN pip3 install -r ./requirements.txt
-
-ENV PORT=8080
+COPY entrypoint.sh ./
 
 RUN chmod +x ./entrypoint.sh
 ENTRYPOINT [ "./entrypoint.sh" ]
