@@ -1,4 +1,18 @@
-<ng-terminal #term
-[rows]="10"
-[cols]="20"
-[draggable]="false"></ng-terminal>
+<div fxFlex fxFill fxLayout="column">
+  <ng-terminal #term [draggable]="false"></ng-terminal>
+  <div class="padded" fxFlex fxLayoutGap="10" fxLayout="column">
+    <mat-chip-list>
+      <mat-chip color="accent" [selected]="connected">
+        {{ connected ? 'Connected':'Disconnected' }}
+      </mat-chip>
+    </mat-chip-list>
+      <mat-form-field fxFlex fxFill>
+        <mat-label>Type shell command to execute</mat-label>
+          <input matInput placeholder="traceroute google.com" [(ngModel)]="buffer" (keypress)="keyPressed($event)">
+          <button *ngIf="buffer" matSuffix mat-icon-button aria-label="Send">
+            <mat-icon>send</mat-icon>
+          </button>
+        <mat-hint>Note: each command is executed on a different shell. Shell-session is persisted as soon as the websocket stays active (at most as long as the webserver timeout).</mat-hint>
+      </mat-form-field>
+  </div>
+</div>

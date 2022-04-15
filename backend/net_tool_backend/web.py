@@ -3,18 +3,15 @@ Flask entrypoint
 """
 import json
 
-from flask import Flask, redirect, make_response as fmake_response
-from flask_restful import Resource, Api
-#from flask_socketio import SocketIO
+from flask import Flask, make_response as fmake_response
+from flask_cors import CORS
+from flask_restful import Api
 from flask_sock import Sock
 
 from net_tool_backend.api.v1.connection import TestTcpConnection
-from net_tool_backend.api.v1.reponse import make_response
 from net_tool_backend.api.v1.shell import Command
 from net_tool_backend.api.v1.traceroute import Traceroute
-from flask_cors import CORS
-
-from net_tool_backend.executor import CommandExecutor
+from net_tool_backend.executor import CommandExecutor, CommandResult
 
 app = Flask(__name__, static_folder="../static", static_url_path="/")
 api = Api(app)
@@ -39,6 +36,8 @@ def basic_pages(**kwargs):
 
 @sock.route('/ws/terminal')
 def terminal(ws):
+    helomsg = None
+    ws.send(json.dumps(helomsg))
     while True:
         data = ws.receive()
 

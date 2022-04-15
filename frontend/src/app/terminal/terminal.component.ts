@@ -1,10 +1,9 @@
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
-import { FunctionsUsingCSI, NgTerminal } from 'ng-terminal';
-import { Injectable } from '@angular/core';
+import { NgTerminal } from 'ng-terminal';
 import { webSocket, WebSocketSubject } from "rxjs/webSocket";
 import { environment } from "../../environments/environment";
-import { catchError, tap, switchAll } from 'rxjs/operators';
-import { EMPTY, Subject } from 'rxjs';
+import { Observer } from 'rxjs';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 
 interface TerminalResponse {
@@ -22,57 +21,55 @@ interface TerminalResponse {
 export class TerminalComponent implements OnInit, AfterViewInit {
   @ViewChild('term', { static: true })
   private child!: NgTerminal;
-  private buffer: string;
-  private terminalSubject: any ;
-  private subscribed:boolean;
+  public buffer: string;
+  public connected:boolean;
+  private terminalSubject: WebSocketSubject<any> ;
 
-  constructor() {
+  private observer: Observer<any> = {
+    next: (msg:any) => {
+      console.info("Received message: ", msg);
+      if (this.connected) {
+        this.handleServerMessage(msg as TerminalResponse)
+      } else if (msg == null) {
+        this.connected = true;
+      }
+    },
+    error: (err:any) => {
+      console.error("Error: ", err);
+      this.connected = false;
+      this.snackbar.open("Connection lost.", "ok");
+    },
+    complete: () => {
+      this.connected = false;
+    }
+  }
+
+  constructor(private snackbar:MatSnackBar) {
     this.buffer = "";
-    this.subscribed = false;
+    this.connected = false;
 
     // If an absolute path has been specified in the terminal_ws env var, use that.
     // Otherwise, calculate it starting from the current location
     let terminalWsAddress = this.calculateTerminalAddress()
 
-    this.terminalSubject = webSocket(environment.TERMINAL_WS);
+    this.terminalSubject = webSocket(terminalWsAddress);
   }
 
   ngOnInit(): void {
+    this.connect();
   }
 
-  ngAfterViewInit(){
-    this.child.keyEventInput.subscribe(e => {
-      console.log('keyboard event:' + e.domEvent.keyCode + ', ' + e.key);
+  ngAfterViewInit(){}
 
-      const ev = e.domEvent;
-      const printable = !ev.altKey && !ev.ctrlKey && !ev.metaKey;
-
-      if (ev.keyCode === 13) {
-        this.child.write('\n' + FunctionsUsingCSI.cursorColumn(1) + '$ '); // \r\n
-        // Send the command
-        this.sendMessage(this.buffer);
-        // Reset the local command buffer
-        this.buffer="";
-      } else if (ev.keyCode === 8) {
-        if (this.child.underlying.buffer.active.cursorX > 2) {
-          this.child.write('\b \b');
-          this.buffer = this.buffer.slice(0, -1)
-        }
-      } else if (printable) {
-        this.child.write(e.key);
-        this.buffer += e.key
-      }
-
-      console.log('buffer: ' + this.buffer);
-
-    })
+  private connect() {
+    this.terminalSubject.asObservable().subscribe(this.observer);
   }
 
   private calculateTerminalAddress(): string {
     if (environment.TERMINAL_WS.startsWith("ws://") || environment.TERMINAL_WS.startsWith("wss://"))
       return environment.TERMINAL_WS;
     else
-      return "ws://"+window.location.href+environment.TERMINAL_WS
+      return "ws://" + window.location.href+environment.TERMINAL_WS
   }
 
   private handleServerMessage(message: TerminalResponse) {
@@ -88,14 +85,15 @@ export class TerminalComponent implements OnInit, AfterViewInit {
     this.child.write(output);
   }
 
-  private sendMessage(command: string): void {
-    if (!this.subscribed) {
-      this.terminalSubject.subscribe((msg: TerminalResponse)=> {
-        this.handleServerMessage(msg);
-      });
-      this.subscribed = true;
-    }
-
+  public sendMessage(command: string): void {
+    this.child.write("\n(CLIENT COMMAND): "+this.buffer+"\n");
     this.terminalSubject.next({command: command});
+    this.buffer = "";
+  }
+
+  public keyPressed(evt:KeyboardEvent) {
+    if (evt.key == 'Enter') {
+      this.sendMessage(this.buffer);
+    }
   }
 }

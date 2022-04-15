@@ -8,9 +8,9 @@ import base64
 
 
 class CommandResult:
-    ret_code:int = None
-    output:bytes|str = None
-    err: bytes|str = None
+    ret_code: int = None
+    output: bytes | str = None
+    err: bytes | str = None
 
     def serialize_data(self) -> Any:
         return {
@@ -25,11 +25,13 @@ class CommandExecutor:
     Base command executor helper.
     Takes care of running a command on this instance and returns the output
     """
-    def __init__(self, command_args:List[str]|str, shell:bool=True, timeout:float=30.0, merge_stdout_stderr:bool=True, **kwargs):
+
+    def __init__(self, command_args: List[str] | str, shell: bool = True, timeout: float = 300.0,
+                 merge_stdout_stderr: bool = True, **kwargs):
         self.command_args = command_args
         self.shell = shell
         self.timeout = timeout
-        self.merge_stdout_stderr=merge_stdout_stderr
+        self.merge_stdout_stderr = merge_stdout_stderr
 
     def execute(self) -> CommandResult:
         res = CommandResult()
@@ -61,4 +63,3 @@ class CommandExecutor:
         res.ret_code = p.returncode
 
         return res
-
