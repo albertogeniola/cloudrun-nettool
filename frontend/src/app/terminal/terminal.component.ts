@@ -48,7 +48,6 @@ export class TerminalComponent implements OnInit, AfterViewInit {
       const printable = !ev.altKey && !ev.ctrlKey && !ev.metaKey;
 
       if (ev.keyCode === 13) {
-        this.child.setStyle()
         this.child.write('\n' + FunctionsUsingCSI.cursorColumn(1) + '$ '); // \r\n
         // Send the command
         this.sendMessage(this.buffer);
