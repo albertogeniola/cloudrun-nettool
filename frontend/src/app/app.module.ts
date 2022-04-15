@@ -11,12 +11,16 @@ import { ConnectionTestComponent } from './connection-test/connection-test.compo
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { ConnectionTestService } from './connection-test.service';
 import { HttpClientModule } from '@angular/common/http';
+import { NgTerminalModule } from 'ng-terminal';
+import { TerminalComponent } from './terminal/terminal.component';
+
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
-    ConnectionTestComponent
+    ConnectionTestComponent,
+    TerminalComponent
   ],
   imports: [
     BrowserModule,
@@ -25,7 +29,8 @@ import { HttpClientModule } from '@angular/common/http';
     AppRoutingModule,
     FlexLayoutModule,
     BrowserAnimationsModule,
-    HttpClientModule
+    HttpClientModule,
+    NgTerminalModule
   ],
   providers: [ConnectionTestService],
   bootstrap: [AppComponent]

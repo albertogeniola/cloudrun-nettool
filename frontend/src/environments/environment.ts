@@ -3,8 +3,9 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false,
-  base_url: "http://localhost:5000"
+  PRODUCTION: false,
+  BASE_URL: "http://localhost:5000",
+  TERMINAL_WS: "ws://localhost:5000/ws/terminal"
 };
 
 /*

@@ -19,7 +19,7 @@ export class TestConnectionConfiguration {
   public port:Number;
   public readData: boolean = false;
   public timeout: Number = 10.0;
-  
+
   constructor(host: String, protocol: Protocol, port: Number) {
       this.host = host;
       this.protocol = protocol;
@@ -48,9 +48,9 @@ export class ConnectionTestService {
 
   executeConnectionTest(conf: TestConnectionConfiguration): Observable<ConnectionResult> {
     return this.http.post<ApiResponse<ConnectionResult>>(
-      environment.base_url + "/api/v1/network/test_connection/"+conf.protocol+"/"+conf.host+"/"+conf.port,
+      environment.BASE_URL + "/api/v1/network/test_connection/"+conf.protocol+"/"+conf.host+"/"+conf.port,
       {"timeout": conf.timeout, "readData": conf.readData},
-      options  
+      options
     )
     .pipe(
       catchError(this.handleError<ApiResponse<ConnectionResult>>('executeConnectionTest')),
