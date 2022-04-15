@@ -7,7 +7,7 @@ from typing import List, Tuple, Any
 import base64
 
 
-class CommandResult():
+class CommandResult:
     ret_code:int = None
     output:bytes|str = None
     err: bytes|str = None
@@ -25,12 +25,11 @@ class CommandExecutor:
     Base command executor helper.
     Takes care of running a command on this instance and returns the output
     """
-    def __init__(self, command_args:List[str], shell:bool=True, timeout:float=30.0, merge_stdout_stderr:bool=True, decode_output:bool=True, **kwargs):
+    def __init__(self, command_args:List[str]|str, shell:bool=True, timeout:float=30.0, merge_stdout_stderr:bool=True, **kwargs):
         self.command_args = command_args
         self.shell = shell
         self.timeout = timeout
         self.merge_stdout_stderr=merge_stdout_stderr
-        self.decode_output = decode_output
 
     def execute(self) -> CommandResult:
         res = CommandResult()
@@ -48,15 +47,14 @@ class CommandExecutor:
             return res
 
         # Collect the data into base64 encoded output and return it together with return code
-        out = p.stdout.read() if p.stdout is not None else None
-        err = None if (not self.merge_stdout_stderr or p.stderr is None) else p.stderr.read()
-
-        if self.decode_output:
-            # Try to decode the output based on the shell encoding
-            encoding = os.environ.get("LC_CTYPE", "utf8")
-            out = out.decode(encoding=encoding)
-            if not self.merge_stdout_stderr:
-                err =  err.decode(encoding=encoding)
+        out = None
+        err = None
+        if p.stdout is not None:
+            out = p.stdout.read()
+            out = base64.b64encode(out).decode("ascii")
+        if err is not None and p.stderr is not None and not self.merge_stdout_stderr:
+            err = p.stderr.read()
+            err = base64.b64encode(err)
 
         res.output = out
         res.err = err
