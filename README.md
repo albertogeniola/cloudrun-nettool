@@ -60,14 +60,25 @@ for any system this container could reach, configuring it as a perfect vector to
 This repo contains all you need to build your version of the Container Net-Tool. 
 You just need to clone the repo, build the image and deploy it wherever needed.
 
-To test it locally, here's what you need to do:
+To test it locally, first build the image.
 
   ```sh
   git clone https://github.com/albertogeniola/container-nettool.git
   cd container-nettool
   docker build -t net-tool:$(cat VERSION) .
-  CONTAINER_PORT=8080
-  docker run net-tool:$(cat VERSION) -p 0.0.0.0:5000:$CONTAINER_PORT/tcp -e PORT=$CONTAINER_PORT
+  ```
+
+Then start it.
+
+  ```sh
+  docker run net-tool:$(cat VERSION)
+  ```
+
+In case you want to start the container on a specific port (useful for Google CloudRun), set it as and env var.
+
+  ```sh
+  CONTAINER_PORT=9090
+  docker run -p 0.0.0.0:5000:$CONTAINER_PORT/tcp -e PORT=$CONTAINER_PORT net-tool:$(cat VERSION)
   ```
 
 Note: you must both expose the container port and tell the container which port it has to bind via the 

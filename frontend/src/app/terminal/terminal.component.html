@@ -12,14 +12,14 @@
       <span fxFlex="1 1 auto"></span>
       <mat-form-field fxFlex="auto 0 auto">
         <mat-label>Timeout</mat-label>
-          <input matInput [(ngModel)]="timeout" [disabled]="busy" type="integer" min="1">
+          <input matInput [(ngModel)]="timeout" [disabled]="busy || !connected" type="integer" min="1">
           <mat-hint fxFlex="auto 0 auto" *ngIf="busy">Elapsed: {{elapsed}}s</mat-hint>
       </mat-form-field>
     </mat-chip-list>
     <mat-form-field fxFlex fxFill>
       <mat-label>Type shell command to execute</mat-label>
-        <input matInput placeholder="traceroute google.com" [(ngModel)]="buffer" (keypress)="keyPressed($event)" [disabled]="busy">
-        <button *ngIf="buffer" matSuffix mat-icon-button aria-label="Send" [disabled]="busy" (click)="sendMessage()">
+        <input matInput placeholder="traceroute google.com" [(ngModel)]="buffer" (keypress)="keyPressed($event)" [disabled]="busy || !connected">
+        <button *ngIf="buffer" matSuffix mat-icon-button aria-label="Send" [disabled]="busy || !connected" (click)="sendMessage()">
           <mat-icon>send</mat-icon>
         </button>
       <mat-hint>Note: each command is executed on a different shell. Shell-session is persisted as soon as the websocket stays active (at most as long as the webserver timeout).</mat-hint>

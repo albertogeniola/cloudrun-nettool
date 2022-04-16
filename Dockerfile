@@ -13,11 +13,14 @@ WORKDIR /opt/net-tool
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV PORT 8080
+ENV REQUEST_TIMEOUT 3600
 
 COPY --from=build /usr/src/app/dist/app ./static
 COPY backend/ ./
 RUN pip3 install -r ./requirements.txt
 COPY entrypoint.sh ./
 
+EXPOSE ${PORT}
 RUN chmod +x ./entrypoint.sh
 ENTRYPOINT [ "./entrypoint.sh" ]
