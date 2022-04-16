@@ -30,6 +30,7 @@ api.add_resource(Traceroute, '/api/v1/network/traceroute/<string:host>')
 @app.route('/home')
 @app.route('/connection')
 @app.route('/traceroute')
+@app.route('/terminal')
 def basic_pages(**kwargs):
     return fmake_response(open('static/index.html').read())
 
