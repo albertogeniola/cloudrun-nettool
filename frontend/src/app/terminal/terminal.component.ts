@@ -21,9 +21,15 @@ interface TerminalResponse {
 export class TerminalComponent implements OnInit, AfterViewInit {
   @ViewChild('term', { static: true })
   private child!: NgTerminal;
+  private terminalSubject: WebSocketSubject<any> ;
+  private intervalId!: ReturnType<typeof setTimeout>;
+
   public buffer: string;
   public connected:boolean;
-  private terminalSubject: WebSocketSubject<any> ;
+  public busy: boolean;
+  public timeout: number;
+  public elapsed: number;
+  public timedOut: boolean;
 
   private observer: Observer<any> = {
     next: (msg:any) => {
@@ -47,6 +53,10 @@ export class TerminalComponent implements OnInit, AfterViewInit {
   constructor(private snackbar:MatSnackBar) {
     this.buffer = "";
     this.connected = false;
+    this.busy = false;
+    this.timeout = 30;
+    this.elapsed = 0;
+    this.timedOut = false;
 
     // If an absolute path has been specified in the terminal_ws env var, use that.
     // Otherwise, calculate it starting from the current location
@@ -83,12 +93,35 @@ export class TerminalComponent implements OnInit, AfterViewInit {
       error = atob(message.err);
 
     this.child.write(output);
+
+    // Only reset the buffer if the return code was 0
+    if (message.retCode==0) {
+      this.buffer = "";
+    }
+
+    // In any case, make the command line available again
+    this.busy = false;
+
+    this.resetCommandTimer(false);
   }
 
   public sendMessage(command: string): void {
     this.child.write("\n(CLIENT COMMAND): "+this.buffer+"\n");
+    this.elapsed = 0;
     this.terminalSubject.next({command: command});
-    this.buffer = "";
+    this.startCommandTimer();
+    this.busy = true;
+  }
+
+  private startCommandTimer() {
+    this.intervalId = setInterval(() => {
+      this.elapsed = this.elapsed + 1;
+    }, 1000);
+  }
+
+  private resetCommandTimer(timedOut:boolean) {
+    clearInterval(this.intervalId);
+    this.timedOut = timedOut;
   }
 
   public keyPressed(evt:KeyboardEvent) {

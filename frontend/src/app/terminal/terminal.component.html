@@ -1,15 +1,24 @@
 <div fxFlex fxFill fxLayout="column">
   <ng-terminal #term [draggable]="false"></ng-terminal>
+  <mat-progress-bar [mode]="busy?'indeterminate':'determinate'"></mat-progress-bar>
   <div class="padded" fxFlex fxLayoutGap="10" fxLayout="column">
-    <mat-chip-list>
-      <mat-chip color="accent" [selected]="connected">
+    <mat-chip-list fxFlex fxFill>
+      <mat-chip fxFlex="auto 0 auto" color="accent" [selected]="connected">
         {{ connected ? 'Connected':'Disconnected' }}
       </mat-chip>
+      <mat-chip fxFlex="auto 0 auto" [selected]="connected && !busy" color="primary">
+        {{ connected && !busy ? 'Ready' : 'Waiting server' }}
+      </mat-chip>
+      <mat-chip fxFlex="auto 1 auto" selected color="warn" *ngIf="timedOut">
+        Timed-out
+      </mat-chip>
+      <span fxFlex="1 1 auto"></span>
+      <mat-hint fxFlex="auto 0 auto" *ngIf="busy">Elapsed: {{elapsed}}s</mat-hint>
     </mat-chip-list>
       <mat-form-field fxFlex fxFill>
         <mat-label>Type shell command to execute</mat-label>
-          <input matInput placeholder="traceroute google.com" [(ngModel)]="buffer" (keypress)="keyPressed($event)">
-          <button *ngIf="buffer" matSuffix mat-icon-button aria-label="Send">
+          <input matInput placeholder="traceroute google.com" [(ngModel)]="buffer" (keypress)="keyPressed($event)" [disabled]="busy">
+          <button *ngIf="buffer" matSuffix mat-icon-button aria-label="Send" [disabled]="busy">
             <mat-icon>send</mat-icon>
           </button>
         <mat-hint>Note: each command is executed on a different shell. Shell-session is persisted as soon as the websocket stays active (at most as long as the webserver timeout).</mat-hint>
