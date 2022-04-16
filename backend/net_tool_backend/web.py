@@ -2,7 +2,7 @@
 Flask entrypoint
 """
 import json
-
+import logging
 from flask import Flask, make_response as fmake_response
 from flask_cors import CORS
 from flask_restful import Api
@@ -18,6 +18,9 @@ api = Api(app)
 CORS(app)
 sock = Sock(app)
 app.config['SOCK_SERVER_OPTIONS'] = {'ping_interval': 25}
+
+
+_LOGGER = logging.getLogger()
 
 
 api.add_resource(Command, '/api/v1/shell/commands')
@@ -40,13 +43,25 @@ def terminal(ws):
     helomsg = None
     ws.send(json.dumps(helomsg))
     while True:
-        data = ws.receive()
-
-        # Parse the message as json
-        message = json.loads(data)
-        executor = CommandExecutor(command_args=message.get("command"), decode_output=False)
-        result = executor.execute()
-        ws.send(json.dumps(result.serialize_data()))
+        try:
+            data = ws.receive()
+            # Parse the message as json
+            message = json.loads(data)
+            command = message.get("command")
+            timeout = message.get("timeout", 300)
+            merge_outputs = message.get("mergeOutputs", True)
+            shell = message.get("useShell", True)
+            executor = CommandExecutor(command_args=command, shell=shell, timeout=timeout, merge_stdout_stderr=merge_outputs)
+            result = executor.execute()
+            ws.send(json.dumps(result.serialize_data()))
+        except Exception as e:
+            _LOGGER.exception("Error occurred while executing websocket read-loop")
+            ws.send(json.dumps({
+                "retCode": None,
+                "output": None,
+                "err": None,
+                "exception": str(e)
+            }))
 
 
 if __name__ == '__main__':

@@ -42,11 +42,7 @@ class CommandExecutor:
                   shell=self.shell)
 
         # Wait for the process to exit and return its status
-        try:
-            p.wait(timeout=self.timeout)
-        except TimeoutExpired as e:
-            res.err = str(e)
-            return res
+        p.wait(timeout=self.timeout)
 
         # Collect the data into base64 encoded output and return it together with return code
         out = None

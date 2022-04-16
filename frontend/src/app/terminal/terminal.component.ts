@@ -4,13 +4,8 @@ import { webSocket, WebSocketSubject } from "rxjs/webSocket";
 import { environment } from "../../environments/environment";
 import { Observer } from 'rxjs';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import { TerminalResponse, TerminalCommand } from 'src/model/terminal';
 
-
-interface TerminalResponse {
-  retCode: number
-  output: string
-  err: string
-}
 
 
 @Component({
@@ -30,10 +25,37 @@ export class TerminalComponent implements OnInit, AfterViewInit {
   public timeout: number;
   public elapsed: number;
   public timedOut: boolean;
+  public mergeOutputs: boolean;
+  public useShell: boolean;
+
+  constructor(private snackbar:MatSnackBar) {
+    this.buffer = "";
+    this.connected = false;
+    this.busy = false;
+    this.timeout = 30;
+    this.elapsed = 0;
+    this.timedOut = false;
+    this.mergeOutputs = false;
+    this.useShell = true;
+
+    // If an absolute path has been specified in the terminal_ws env var, use that.
+    // Otherwise, calculate it starting from the current location
+    let terminalWsAddress = this.calculateTerminalAddress()
+
+    this.terminalSubject = webSocket(terminalWsAddress);
+  }
+
+  ngOnInit(): void {
+    this.connect();
+  }
+
+  ngAfterViewInit() {
+
+  }
 
   private observer: Observer<any> = {
     next: (msg:any) => {
-      console.info("Received message: ", msg);
+      console.debug("Received message: ", msg);
       if (this.connected) {
         this.handleServerMessage(msg as TerminalResponse)
       } else if (msg == null) {
@@ -50,36 +72,19 @@ export class TerminalComponent implements OnInit, AfterViewInit {
     }
   }
 
-  constructor(private snackbar:MatSnackBar) {
-    this.buffer = "";
-    this.connected = false;
-    this.busy = false;
-    this.timeout = 30;
-    this.elapsed = 0;
-    this.timedOut = false;
-
-    // If an absolute path has been specified in the terminal_ws env var, use that.
-    // Otherwise, calculate it starting from the current location
-    let terminalWsAddress = this.calculateTerminalAddress()
-
-    this.terminalSubject = webSocket(terminalWsAddress);
-  }
-
-  ngOnInit(): void {
-    this.connect();
-  }
-
-  ngAfterViewInit(){}
-
   private connect() {
     this.terminalSubject.asObservable().subscribe(this.observer);
   }
 
   private calculateTerminalAddress(): string {
+    // If a full path was specified, use that.
     if (environment.TERMINAL_WS.startsWith("ws://") || environment.TERMINAL_WS.startsWith("wss://"))
       return environment.TERMINAL_WS;
-    else
-      return "ws://" + window.location.href+environment.TERMINAL_WS
+    else {
+      // Otherwise, infer it from the current location
+      let protocol = window.location.protocol.toLowerCase() == "https" ? "wss" : "ws";
+      return protocol + "://" + window.location.hostname + ":" + window.location.port + environment.TERMINAL_WS
+    }
   }
 
   private handleServerMessage(message: TerminalResponse) {
@@ -87,12 +92,18 @@ export class TerminalComponent implements OnInit, AfterViewInit {
     let output!: string;
     let error!: string;
 
-    if (message.output)
+    if (message.output) {
       output = atob(message.output);
-    if (message.err)
+      this.child.write(output);
+    }
+    if (message.err) {
       error = atob(message.err);
+      this.child.write(error);
+    }
 
-    this.child.write(output);
+    if (message.exception) {
+      this.snackbar.open(message.exception, "ok");
+    }
 
     // Only reset the buffer if the return code was 0
     if (message.retCode==0) {
@@ -105,10 +116,17 @@ export class TerminalComponent implements OnInit, AfterViewInit {
     this.resetCommandTimer(false);
   }
 
-  public sendMessage(command: string): void {
+  public sendMessage(): void {
+    let terminalCommand = {
+      command: this.buffer,
+      timeout: Number(this.timeout),
+      mergeOutputs: this.mergeOutputs,
+      useShell: this.useShell
+    } as TerminalCommand;
+
     this.child.write("\n(CLIENT COMMAND): "+this.buffer+"\n");
     this.elapsed = 0;
-    this.terminalSubject.next({command: command});
+    this.terminalSubject.next(terminalCommand);
     this.startCommandTimer();
     this.busy = true;
   }
@@ -126,7 +144,7 @@ export class TerminalComponent implements OnInit, AfterViewInit {
 
   public keyPressed(evt:KeyboardEvent) {
     if (evt.key == 'Enter') {
-      this.sendMessage(this.buffer);
+      this.sendMessage();
     }
   }
 }
