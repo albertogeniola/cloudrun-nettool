@@ -40,8 +40,8 @@ export class TerminalComponent implements OnInit, AfterViewInit {
 
     // If an absolute path has been specified in the terminal_ws env var, use that.
     // Otherwise, calculate it starting from the current location
-    let terminalWsAddress = this.calculateTerminalAddress()
-
+    let terminalWsAddress = this.calculateTerminalAddress();
+    console.info("Connecting against websocket: ", terminalWsAddress);
     this.terminalSubject = webSocket(terminalWsAddress);
   }
 
@@ -82,8 +82,8 @@ export class TerminalComponent implements OnInit, AfterViewInit {
       return environment.TERMINAL_WS;
     else {
       // Otherwise, infer it from the current location
-      let protocol = window.location.protocol.toLowerCase() == "https" ? "wss" : "ws";
-      return protocol + "://" + window.location.hostname + ":" + window.location.port + environment.TERMINAL_WS
+      let protocol = window.location.protocol.toLowerCase() == "https:" ? "wss:" : "ws:";
+      return protocol + "//" + window.location.hostname + ":" + window.location.port + environment.TERMINAL_WS
     }
   }
 
