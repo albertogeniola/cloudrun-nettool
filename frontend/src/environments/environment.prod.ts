@@ -1,5 +1,5 @@
 export const environment = {
-  production: true,
-  base_url: "",
-  terminal_ws: "/ws/terminal"
+  PRODUCTION: false,
+  BASE_URL: "http://localhost:5000",
+  TERMINAL_WS: "ws://localhost:5000/ws/terminal"
 };
