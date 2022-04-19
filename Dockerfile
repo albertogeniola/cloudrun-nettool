@@ -19,6 +19,10 @@ ENV REQUEST_TIMEOUT 3600
 COPY --from=build /usr/src/app/dist/app ./static
 COPY backend/ ./
 RUN pip3 install -r ./requirements.txt
+
+# Install network tools
+RUN apt-get update && apt-get install iputils-ping net-tools -y
+
 COPY entrypoint.sh ./
 
 EXPOSE ${PORT}
