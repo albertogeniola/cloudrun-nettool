@@ -94,11 +94,13 @@ export class TerminalComponent implements OnInit, AfterViewInit {
 
     if (message.output) {
       output = atob(message.output);
-      this.child.write(output.replace("\n","\r\n"));
+      console.log("STDOUT: ", output);
+      this.child.write(output.replaceAll("\n","\r\n"));
     }
     if (message.err) {
       error = atob(message.err);
-      this.child.write(error.replace("\n","\r\n"));
+      console.log("STDERR: ", error);
+      this.child.write(error.replaceAll("\n","\r\n"));
     }
 
     if (message.exception) {
