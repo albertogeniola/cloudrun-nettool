@@ -50,9 +50,9 @@ class CommandExecutor:
         if p.stdout is not None:
             out = p.stdout.read()
             out = base64.b64encode(out).decode("ascii")
-        if err is not None and p.stderr is not None and not self.merge_stdout_stderr:
+        if p.stderr is not None and p.stderr is not None and not self.merge_stdout_stderr:
             err = p.stderr.read()
-            err = base64.b64encode(err)
+            err = base64.b64encode(err).decode("ascii")
 
         res.output = out
         res.err = err
