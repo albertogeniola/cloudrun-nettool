@@ -55,13 +55,13 @@ def terminal(ws):
             result = executor.execute()
             ws.send(json.dumps(result.serialize_data()))
         except Exception as e:
-            _LOGGER.exception("Error occurred while executing websocket read-loop")
             ws.send(json.dumps({
                 "retCode": None,
                 "output": None,
                 "err": None,
                 "exception": str(e)
             }))
+            raise
 
 
 if __name__ == '__main__':
